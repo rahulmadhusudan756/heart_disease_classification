@@ -65,7 +65,6 @@ AdaBoostClassifier(
 4. **Stratified CV**: Ensures fair evaluation on small dataset
 
 ### Comparison to Literature
-- Target from paper: 99.48% accuracy
 - Our result: 88.33% accuracy
 - **Note**: 99.48% likely indicates data leakage or unrealistic evaluation
 - **88.33% is excellent** for real-world heart disease prediction
