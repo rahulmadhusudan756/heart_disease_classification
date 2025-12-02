@@ -23,8 +23,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global variables to store loaded models
+# Global variables to store loaded models and preprocessing components
 models = {}
+preprocessors = {}  # Store scalers, selectors, PCA, etc.
 
 # Pydantic models for input validation
 class CoronaryInput(BaseModel):
@@ -162,14 +163,38 @@ async def load_models():
         "normal_heart": "final_models/normal_heart.pkl"
     }
     
+    # Models that are saved as dictionaries (need to extract 'model' key)
+    dict_models = {"heart_attack", "heart_failure", "hypertension"}
+    
     for model_name, model_path in model_files.items():
         try:
             if not os.path.exists(model_path):
                 print(f"✗ Model file not found: {model_path}")
                 raise FileNotFoundError(f"Model file not found: {model_path}")
             
-            models[model_name] = joblib.load(model_path)
-            print(f"✓ Loaded {model_name} model successfully")
+            loaded_obj = joblib.load(model_path)
+            
+            # Extract model from dictionary if needed
+            if model_name in dict_models:
+                if isinstance(loaded_obj, dict) and 'model' in loaded_obj:
+                    models[model_name] = loaded_obj['model']
+                    # Store preprocessing components
+                    preprocessors[model_name] = {
+                        'scaler': loaded_obj.get('scaler'),
+                        'selector': loaded_obj.get('selector'),
+                        'pca': loaded_obj.get('pca')
+                    }
+                    print(f"✓ Loaded {model_name} model successfully (from dict)")
+                    if loaded_obj.get('selector'):
+                        print(f"  - Selector: expects {loaded_obj.get('n_input_features', 'unknown')} input features")
+                else:
+                    models[model_name] = loaded_obj
+                    preprocessors[model_name] = {}
+                    print(f"✓ Loaded {model_name} model successfully (direct)")
+            else:
+                models[model_name] = loaded_obj
+                preprocessors[model_name] = {}
+                print(f"✓ Loaded {model_name} model successfully")
         except Exception as e:
             print(f"✗ Error loading {model_name} model from {model_path}: {str(e)}")
             import traceback
@@ -241,13 +266,23 @@ async def predict_heart_attack(data: HeartAttackInput):
             data.oldpeak, data.st_slope
         ]])
         
+        # Apply preprocessing pipeline if available
+        processed = input_data
+        if 'heart_attack' in preprocessors:
+            if preprocessors['heart_attack'].get('scaler'):
+                processed = preprocessors['heart_attack']['scaler'].transform(processed)
+            if preprocessors['heart_attack'].get('selector'):
+                processed = preprocessors['heart_attack']['selector'].transform(processed)
+            if preprocessors['heart_attack'].get('pca'):
+                processed = preprocessors['heart_attack']['pca'].transform(processed)
+        
         # Make prediction
-        prediction = int(models["heart_attack"].predict(input_data)[0])
+        prediction = int(models["heart_attack"].predict(processed)[0])
         
         # Get probability if available
         probability = None
         if hasattr(models["heart_attack"], "predict_proba"):
-            proba = models["heart_attack"].predict_proba(input_data)[0]
+            proba = models["heart_attack"].predict_proba(processed)[0]
             probability = float(proba[1]) if len(proba) > 1 else float(proba[0])
         
         return PredictionResponse(
@@ -271,13 +306,19 @@ async def predict_heart_failure(data: HeartFailureInput):
             data.exercise_angina, data.oldpeak, data.st_slope
         ]])
         
+        # Apply preprocessing pipeline if available
+        processed = input_data
+        if 'heart_failure' in preprocessors:
+            if preprocessors['heart_failure'].get('selector'):
+                processed = preprocessors['heart_failure']['selector'].transform(processed)
+        
         # Make prediction
-        prediction = int(models["heart_failure"].predict(input_data)[0])
+        prediction = int(models["heart_failure"].predict(processed)[0])
         
         # Get probability if available
         probability = None
         if hasattr(models["heart_failure"], "predict_proba"):
-            proba = models["heart_failure"].predict_proba(input_data)[0]
+            proba = models["heart_failure"].predict_proba(processed)[0]
             probability = float(proba[1]) if len(proba) > 1 else float(proba[0])
         
         return PredictionResponse(
