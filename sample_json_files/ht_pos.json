@@ -1,0 +1,17 @@
+{
+  "male": 1,
+  "age": 62,
+  "education": 1,
+  "current_smoker": 1,
+  "cigs_per_day": 25,
+  "bp_meds": 1,
+  "prevalent_stroke": 0,
+  "prevalent_hyp": 1,
+  "diabetes": 1,
+  "tot_chol": 295,
+  "sys_bp": 175,
+  "dia_bp": 105,
+  "bmi": 32.8,
+  "heart_rate": 88,
+  "glucose": 145
+}

@@ -1,0 +1,13 @@
+{
+  "age": 38,
+  "sex": 0,
+  "chest_pain_type": 1,
+  "resting_bp": 110,
+  "cholesterol": 185,
+  "fasting_bs": 0,
+  "resting_ecg": 0,
+  "max_hr": 170,
+  "exercise_angina": 0,
+  "oldpeak": 0.2,
+  "st_slope": 1
+}

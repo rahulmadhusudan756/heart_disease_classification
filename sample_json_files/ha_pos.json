@@ -1,0 +1,13 @@
+{
+  "age": 56,
+  "sex": 1,
+  "chest_pain_type": 1,
+  "trestbps": 145,
+  "chol": 265,
+  "fbs": 0,
+  "restecg": 1,
+  "thalach": 120,
+  "exercise_angina": 1,
+  "oldpeak": 2.0,
+  "st_slope": 2
+}

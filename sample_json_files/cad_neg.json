@@ -1,0 +1,12 @@
+{
+  "exang": 0,
+  "thal": 0,
+  "restecg": 0,
+  "slope": 0,
+  "thalach": 190,
+  "chol": 140,
+  "oldpeak": 0.0,
+  "trestbps": 100,
+  "cp": 0,
+  "ca": 0
+}
